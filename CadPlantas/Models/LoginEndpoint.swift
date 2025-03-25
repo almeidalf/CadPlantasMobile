@@ -17,7 +17,6 @@ public struct LoginEndpoint {
     self.path = "/api/v1/user/login"
     
     self.body = [:]
-    
     body?["email"] = email
     body?["password"] = password
   }

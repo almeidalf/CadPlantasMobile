@@ -10,9 +10,22 @@
 		2062A2942D0665D4002522BF /* CadPlantas.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CadPlantas.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		2018DC3C2D922F3300838768 /* Exceptions for "CadPlantas" folder in "CadPlantas" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 2062A2932D0665D4002522BF /* CadPlantas */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2062A2962D0665D4002522BF /* CadPlantas */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				2018DC3C2D922F3300838768 /* Exceptions for "CadPlantas" folder in "CadPlantas" target */,
+			);
 			path = CadPlantas;
 			sourceTree = "<group>";
 		};
@@ -244,6 +257,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				BASE_URL = "http://localhost:3000";
 				CODE_SIGN_ENTITLEMENTS = CadPlantas/CadPlantas.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -252,6 +266,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CadPlantas/Info.plist;
 				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "Precisamos acessar sua localização para mostrar a sua posição no mapa.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Precisamos acessar sua localização para mostrar a sua posição no mapa.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -284,6 +299,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				BASE_URL = "http://82.29.56.19:3000";
 				CODE_SIGN_ENTITLEMENTS = CadPlantas/CadPlantas.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -292,6 +308,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CadPlantas/Info.plist;
 				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "Precisamos acessar sua localização para mostrar a sua posição no mapa.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Precisamos acessar sua localização para mostrar a sua posição no mapa.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;

@@ -12,7 +12,6 @@ public struct PlantEndpoint {
   public var body: [String: Any]?
   public var method: String = "POST"  // Usando POST para enviar dados
   public var query: [URLQueryItem] = []
-  private let baseURL = "http://localhost:3000"
   
   // Inicializador
   public init(plant: PlantModel) {
@@ -45,6 +44,6 @@ public struct PlantEndpoint {
   }
   
   public func fullURL() -> URL? {
-    return URL(string: baseURL + path)
+    URL(string: Environment.baseURL + path)
   }
 }

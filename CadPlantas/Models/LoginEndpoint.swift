@@ -10,11 +10,9 @@ import Foundation
 public struct LoginEndpoint {
   public var path: String
   public var body: [String: Any]?
-  public var method: String = "POST"  // Usando POST para enviar dados
+  public var method: String = "POST"
   public var query: [URLQueryItem] = []
-  private let baseURL = "http://localhost:3000"
   
-  // Inicializador
   public init(email: String, password: String) {
     self.path = "/api/v1/user/login"
     
@@ -25,7 +23,7 @@ public struct LoginEndpoint {
   }
   
   public func fullURL() -> URL? {
-    return URL(string: baseURL + path)
+    URL(string: Environment.baseURL + path)
   }
 }
 

@@ -21,10 +21,15 @@ struct TreeRegisterView: View {
   @State var longitude: String = ""
   
   @State private var selectedImages: [UIImage] = []
-  @State private var showImagePicker = false
+  @State private var showCameraPicker = false
+  @State private var showPhotoLibraryPicker = false
   @StateObject private var locationManager = LocationManager()
   @State private var showAlert = false
   @State private var alertMessage = ""
+  @State private var imageToDelete: UIImage?
+  @State private var showDeleteConfirmation = false
+  @State private var imageFromCamera = false
+  @State private var cameraPickerJustClosed = false
   
   var isValid: Bool {
     !name.isEmpty && !description.isEmpty && !selectedImages.isEmpty
@@ -70,30 +75,59 @@ struct TreeRegisterView: View {
             .foregroundColor(Color.black)
             .cornerRadius(8)
           
-          // Botão para selecionar imagens
-          Button(action: {
-            showImagePicker.toggle()
-          }) {
-            Text("Selecionar Imagens")
-              .padding()
-              .frame(maxWidth: .infinity)
-              .background(Color.blue)
-              .foregroundColor(.white)
-              .cornerRadius(8)
+          HStack(spacing: 16) {
+            Button(action: {
+              showCameraPicker = true
+              imageFromCamera = true
+            }) {
+              Label("Tirar Foto", systemImage: "camera")
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.blue)
+                .foregroundColor(.white)
+                .cornerRadius(8)
+            }
+
+            Button(action: {
+              showPhotoLibraryPicker = true
+              imageFromCamera = false
+            }) {
+              Label("Galeria", systemImage: "photo")
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.indigo)
+                .foregroundColor(.white)
+                .cornerRadius(8)
+            }
           }
-          .padding(.bottom, 16)
           
-          // Exibição das imagens selecionadas
           if !selectedImages.isEmpty {
             ScrollView(.horizontal) {
               HStack {
                 ForEach(selectedImages, id: \.self) { image in
-                  Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 100, height: 100)
-                    .clipped()
-                    .cornerRadius(8)
+                  ZStack(alignment: .topTrailing) {
+                    Image(uiImage: image)
+                      .resizable()
+                      .scaledToFill()
+                      .frame(width: 100, height: 100)
+                      .clipped()
+                      .cornerRadius(8)
+                      .onTapGesture {
+                        imageToDelete = image
+                        showDeleteConfirmation = true
+                      }
+
+                    Button(action: {
+                      imageToDelete = image
+                      showDeleteConfirmation = true
+                    }) {
+                      Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.white)
+                        .background(Color.black.opacity(0.6))
+                        .clipShape(Circle())
+                    }
+                    .padding(5)
+                  }
                 }
               }
             }
@@ -111,20 +145,50 @@ struct TreeRegisterView: View {
           .disabled(!isValid)
         }
         .padding(.all, 16)
-        .onAppear {
-          locationManager.requestLocation()
-        }
-        .onChange(of: locationManager.location) { newLocation in
-          if let location = newLocation {
-            self.latitude = String(location.coordinate.latitude)
-            self.longitude = String(location.coordinate.longitude)
+        .onChange(of: selectedImages) { newImages in
+          if imageFromCamera, !newImages.isEmpty {
+            locationManager.requestLocation()
+          }
+          
+          if newImages.isEmpty {
+            latitude = ""
+            longitude = ""
           }
         }
-        .sheet(isPresented: $showImagePicker) {
-          ImagePicker(selectedImages: $selectedImages)
+        .onChange(of: locationManager.location) { newLocation in
+          if imageFromCamera, let location = newLocation {
+            latitude = String(location.coordinate.latitude)
+            longitude = String(location.coordinate.longitude)
+          }
+        }
+        .sheet(isPresented: $showCameraPicker) {
+          CameraPicker(selectedImages: $selectedImages)
+        }
+        .onDisappear {
+          if imageFromCamera {
+            cameraPickerJustClosed = true
+          }
+        }
+        .sheet(isPresented: $showPhotoLibraryPicker) {
+          PhotoLibraryPicker(
+            selectedImages: $selectedImages,
+            latitude: $latitude,
+            longitude: $longitude
+          )
         }
         .alert(isPresented: $showAlert) {
           Alert(title: Text("Atenção"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+        }
+        .confirmationDialog("Deseja remover esta imagem?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+          Button("Remover", role: .destructive) {
+            if let image = imageToDelete, let index = selectedImages.firstIndex(of: image) {
+              selectedImages.remove(at: index)
+            }
+            imageToDelete = nil
+          }
+          Button("Cancelar", role: .cancel) {
+            imageToDelete = nil
+          }
         }
       }
       .navigationTitle("Cadastro de Árvore")

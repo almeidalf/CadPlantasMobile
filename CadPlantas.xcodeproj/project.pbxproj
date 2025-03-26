@@ -257,7 +257,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				BASE_URL = "http://localhost:3000";
+				BASE_URL = "http://192.168.0.168:3000";
 				CODE_SIGN_ENTITLEMENTS = CadPlantas/CadPlantas.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -267,8 +267,11 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CadPlantas/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Cad Plantas Brasil";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Precisamos acessar a câmera para tirar fotos da planta.";
 				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "Precisamos acessar sua localização para mostrar a sua posição no mapa.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Precisamos acessar sua localização para mostrar a sua posição no mapa.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Precisamos acessar a galeria para selecionar fotos da planta.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -309,8 +312,11 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CadPlantas/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Cad Plantas Brasil";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Precisamos acessar a câmera para tirar fotos da planta.";
 				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "Precisamos acessar sua localização para mostrar a sua posição no mapa.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Precisamos acessar sua localização para mostrar a sua posição no mapa.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Precisamos acessar a galeria para selecionar fotos da planta.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;

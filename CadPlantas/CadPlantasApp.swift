@@ -11,7 +11,7 @@ import SwiftUI
 struct CadPlantasApp: App {
   var body: some Scene {
     WindowGroup {
-      LoginView()
+      SplashScreenView()
     }
   }
 }

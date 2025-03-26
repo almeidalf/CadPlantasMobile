@@ -1,9 +1,9 @@
 import SwiftUI
-import PhotosUI
-import CoreLocation
 
 struct PlantRegisterView: View {
   @AppStorage("token") private var token: String = ""
+  @State private var showCameraPicker = false
+  @State private var showPhotoLibraryPicker = false
   
   @State var name: String = ""
   @State var nameScientific: String = ""
@@ -12,10 +12,11 @@ struct PlantRegisterView: View {
   @State var longitude: String = ""
   
   @State private var selectedImages: [UIImage] = []
-  @State private var showImagePicker = false
   @StateObject private var locationManager = LocationManager()
   @State private var showAlert = false
   @State private var alertMessage = ""
+  @State private var imageToDelete: UIImage?
+  @State private var showDeleteConfirmation = false
   
   var body: some View {
     NavigationView {
@@ -47,7 +48,6 @@ struct PlantRegisterView: View {
             .foregroundColor(Color.black)
             .cornerRadius(8)
           
-          // Campo de texto para longitude (somente leitura)
           TextField("Longitude", text: $longitude)
             .disabled(true)
             .padding()
@@ -55,36 +55,62 @@ struct PlantRegisterView: View {
             .foregroundColor(Color.black)
             .cornerRadius(8)
           
-          // Botão para selecionar imagens
-          Button(action: {
-            showImagePicker.toggle()
-          }) {
-            Text("Selecionar Imagens")
-              .padding()
-              .frame(maxWidth: .infinity)
-              .background(Color.blue)
-              .foregroundColor(.white)
-              .cornerRadius(8)
+          HStack(spacing: 16) {
+            Button(action: {
+              showCameraPicker = true
+            }) {
+              Label("Tirar Foto", systemImage: "camera")
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.blue)
+                .foregroundColor(.white)
+                .cornerRadius(8)
+            }
+            
+            Button(action: {
+              showPhotoLibraryPicker = true
+            }) {
+              Label("Galeria", systemImage: "photo")
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.indigo)
+                .foregroundColor(.white)
+                .cornerRadius(8)
+            }
           }
-          .padding(.bottom, 16)
           
-          // Exibição das imagens selecionadas
           if !selectedImages.isEmpty {
             ScrollView(.horizontal) {
               HStack {
                 ForEach(selectedImages, id: \.self) { image in
-                  Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 100, height: 100)
-                    .clipped()
-                    .cornerRadius(8)
+                  ZStack(alignment: .topTrailing) {
+                    Image(uiImage: image)
+                      .resizable()
+                      .scaledToFill()
+                      .frame(width: 100, height: 100)
+                      .clipped()
+                      .cornerRadius(8)
+                      .onTapGesture {
+                        imageToDelete = image
+                        showDeleteConfirmation = true
+                      }
+                    
+                    Button(action: {
+                      imageToDelete = image
+                      showDeleteConfirmation = true
+                    }) {
+                      Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.white)
+                        .background(Color.black.opacity(0.6))
+                        .clipShape(Circle())
+                    }
+                    .padding(5)
+                  }
                 }
               }
             }
           }
           
-          // Botão de Enviar
           Button("Enviar") {
             submitForm()
           }
@@ -105,18 +131,35 @@ struct PlantRegisterView: View {
             self.longitude = String(location.coordinate.longitude)
           }
         }
-        .sheet(isPresented: $showImagePicker) {
-          ImagePicker(selectedImages: $selectedImages)
-        }
         .alert(isPresented: $showAlert) {
           Alert(title: Text("Atenção"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+        }
+        .sheet(isPresented: $showCameraPicker) {
+          CameraPicker(selectedImages: $selectedImages)
+        }
+        .sheet(isPresented: $showPhotoLibraryPicker) {
+          PhotoLibraryPicker(
+            selectedImages: $selectedImages,
+            latitude: $latitude,
+            longitude: $longitude
+          )
+        }
+        .confirmationDialog("Deseja remover esta imagem?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+          Button("Remover", role: .destructive) {
+            if let image = imageToDelete, let index = selectedImages.firstIndex(of: image) {
+              selectedImages.remove(at: index)
+            }
+            imageToDelete = nil
+          }
+          Button("Cancelar", role: .cancel) {
+            imageToDelete = nil
+          }
         }
       }
       .navigationTitle("Cadastro de Planta")
     }
   }
   
-  //Propriedade computada para validar se o formulário pode ser enviado
   var isValid: Bool {
     !name.isEmpty && !description.isEmpty && !selectedImages.isEmpty
   }
@@ -161,7 +204,6 @@ struct PlantRegisterView: View {
       return
     }
     
-    // Enviando a requisição
     let task = URLSession.shared.dataTask(with: request) { data, response, error in
       if let error = error {
         print("Erro de requisição: \(error.localizedDescription)")
@@ -176,83 +218,6 @@ struct PlantRegisterView: View {
     }
     
     task.resume()
-  }
-}
-
-class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
-  private let locationManager = CLLocationManager()
-  @Published var location: CLLocation?
-  
-  override init() {
-    super.init()
-    self.locationManager.delegate = self
-    self.locationManager.desiredAccuracy = kCLLocationAccuracyBest
-  }
-  
-  func requestLocation() {
-    locationManager.requestWhenInUseAuthorization()
-    locationManager.startUpdatingLocation()
-  }
-  
-  func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-    if let location = locations.last {
-      self.location = location
-      locationManager.stopUpdatingLocation()
-    }
-  }
-  
-  func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-    print("Erro ao obter localização: \(error)")
-  }
-}
-
-struct ImagePicker: UIViewControllerRepresentable {
-  @Binding var selectedImages: [UIImage]
-  
-  func makeUIViewController(context: Context) -> PHPickerViewController {
-    var config = PHPickerConfiguration()
-    config.filter = .images
-    config.selectionLimit = 8
-    let picker = PHPickerViewController(configuration: config)
-    picker.delegate = context.coordinator
-    return picker
-  }
-  
-  func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {
-  }
-  
-  func makeCoordinator() -> Coordinator {
-    Coordinator(self)
-  }
-  
-  class Coordinator: NSObject, PHPickerViewControllerDelegate {
-    let parent: ImagePicker
-    
-    init(_ parent: ImagePicker) {
-      self.parent = parent
-    }
-    
-    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-      picker.dismiss(animated: true)
-      
-      parent.selectedImages.removeAll()
-      
-      var images: [UIImage] = []
-      let group = DispatchGroup()
-      
-      for result in results {
-        group.enter()
-        result.itemProvider.loadObject(ofClass: UIImage.self) { (image, _) in
-          if let image = image as? UIImage {
-            images.append(image)
-          }
-          group.leave()
-        }
-      }
-      group.notify(queue: .main) {
-        self.parent.selectedImages = images
-      }
-    }
   }
 }
 

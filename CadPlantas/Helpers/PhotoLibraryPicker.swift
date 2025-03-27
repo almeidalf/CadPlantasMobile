@@ -21,7 +21,7 @@ struct PhotoLibraryPicker: UIViewControllerRepresentable {
   func makeUIViewController(context: Context) -> PHPickerViewController {
     var configuration = PHPickerConfiguration(photoLibrary: .shared())
     configuration.filter = .images
-    configuration.selectionLimit = 10 // Permite múltiplas imagens
+    configuration.selectionLimit = 10
 
     let picker = PHPickerViewController(configuration: configuration)
     picker.delegate = context.coordinator
@@ -70,11 +70,13 @@ struct PhotoLibraryPicker: UIViewControllerRepresentable {
                   print("📍 Coordenadas da primeira imagem: \(location.coordinate.latitude), \(location.coordinate.longitude)")
                 }
               } else {
-                print("⚠️ Primeira imagem não contém dados de localização.")
+                self.parent.latitude = "0"
+                self.parent.longitude = "0"
               }
             }
           } else {
-            print("❌ Asset da primeira imagem não encontrado.")
+            self.parent.latitude = "0"
+            self.parent.longitude = "0"
           }
         }
       }

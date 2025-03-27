@@ -23,7 +23,7 @@ struct LoginView: View {
           TextField("E-mail", text: $email)
             .padding()
             .background(Color.gray)
-            .foregroundColor(Color.white)
+            .foregroundColor(Color.colorText)
             .cornerRadius(8)
             .keyboardType(.emailAddress)
             .autocapitalization(.none)
@@ -31,7 +31,7 @@ struct LoginView: View {
           SecureField("Senha", text: $password)
             .padding()
             .background(Color.gray)
-            .foregroundColor(Color.white)
+            .foregroundColor(Color.colorText)
             .cornerRadius(8)
           
           Button(action: {
@@ -50,8 +50,8 @@ struct LoginView: View {
               Text("Entrar")
                 .padding()
                 .frame(maxWidth: .infinity)
-                .background(Color.primary)
-                .foregroundColor(.white)
+                .background(Color.blue)
+                .foregroundColor(Color.white)
                 .cornerRadius(8)
             }
           }
@@ -78,6 +78,7 @@ struct LoginView: View {
         }
       }
     }
+    .background(Color.backgroundApp)
   }
   
   func sendRequest(endpoint: LoginEndpoint) {

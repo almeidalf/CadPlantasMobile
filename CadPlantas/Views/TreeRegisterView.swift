@@ -59,21 +59,21 @@ struct TreeRegisterView: View {
             .foregroundColor(Color.black)
             .cornerRadius(8)
           
-          // Campo de texto para latitude (somente leitura)
-          TextField("Latitude", text: $latitude)
-            .disabled(true)
-            .padding()
-            .background(Color.gray.opacity(0.2))
-            .foregroundColor(Color.black)
-            .cornerRadius(8)
-          
-          // Campo de texto para longitude (somente leitura)
-          TextField("Longitude", text: $longitude)
-            .disabled(true)
-            .padding()
-            .background(Color.gray.opacity(0.2))
-            .foregroundColor(Color.black)
-            .cornerRadius(8)
+          if let lat = Double(latitude), let lon = Double(longitude) {
+            HStack(alignment: .center) {
+              Text("Latitude: \(String(format: "%.6f", lat))")
+                .padding()
+                .background(Color.gray.opacity(0.2))
+                .foregroundColor(Color.black)
+                .cornerRadius(8)
+              
+              Text("Longitude: \(String(format: "%.6f", lon))")
+                .padding()
+                .background(Color.gray.opacity(0.2))
+                .foregroundColor(Color.black)
+                .cornerRadius(8)
+            }
+          }
           
           HStack(spacing: 16) {
             Button(action: {
@@ -109,7 +109,7 @@ struct TreeRegisterView: View {
                     Image(uiImage: image)
                       .resizable()
                       .scaledToFill()
-                      .frame(width: 100, height: 100)
+                      .frame(width: 250, height: 250)
                       .clipped()
                       .cornerRadius(8)
                       .onTapGesture {
@@ -146,7 +146,7 @@ struct TreeRegisterView: View {
         }
         .padding(.all, 16)
         .onChange(of: selectedImages) { newImages in
-          if imageFromCamera, !newImages.isEmpty {
+          if !newImages.isEmpty, latitude == "0", longitude == "0" {
             locationManager.requestLocation()
           }
           
@@ -192,6 +192,7 @@ struct TreeRegisterView: View {
         }
       }
       .navigationTitle("Cadastro de Árvore")
+      .background(Color.backgroundApp)
     }
   }
   

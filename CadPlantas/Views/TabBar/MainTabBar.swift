@@ -25,6 +25,7 @@ struct MainTabBar: View {
       }
     }
     .navigationBarBackButtonHidden(true)
+    .background(Color.backgroundApp)
   }
 }
 

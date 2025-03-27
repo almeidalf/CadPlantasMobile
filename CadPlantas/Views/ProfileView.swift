@@ -14,5 +14,6 @@ struct ProfileView: View {
         .font(.title)
         .padding()
     }
+    .background(Color.backgroundApp)
   }
 }

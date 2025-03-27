@@ -17,6 +17,8 @@ struct PlantRegisterView: View {
   @State private var alertMessage = ""
   @State private var imageToDelete: UIImage?
   @State private var showDeleteConfirmation = false
+  @State private var imageFromCamera = false
+  @State private var cameraPickerJustClosed = false
   
   var body: some View {
     NavigationView {
@@ -40,24 +42,26 @@ struct PlantRegisterView: View {
             .foregroundColor(Color.black)
             .cornerRadius(8)
           
-          // Campo de texto para latitude (somente leitura)
-          TextField("Latitude", text: $latitude)
-            .disabled(true)
-            .padding()
-            .background(Color.gray.opacity(0.2))
-            .foregroundColor(Color.black)
-            .cornerRadius(8)
-          
-          TextField("Longitude", text: $longitude)
-            .disabled(true)
-            .padding()
-            .background(Color.gray.opacity(0.2))
-            .foregroundColor(Color.black)
-            .cornerRadius(8)
+          if let lat = Double(latitude), let lon = Double(longitude) {
+            HStack(spacing: 8) {
+              Text("Latitude: \(String(format: "%.5f", lat))")
+                .padding()
+                .background(Color.gray.opacity(0.2))
+                .foregroundColor(Color.black)
+                .cornerRadius(8)
+              
+              Text("Longitude: \(String(format: "%.5f", lon))")
+                .padding()
+                .background(Color.gray.opacity(0.2))
+                .foregroundColor(Color.black)
+                .cornerRadius(8)
+            }
+          }
           
           HStack(spacing: 16) {
             Button(action: {
               showCameraPicker = true
+              imageFromCamera = true
             }) {
               Label("Tirar Foto", systemImage: "camera")
                 .padding()
@@ -69,6 +73,7 @@ struct PlantRegisterView: View {
             
             Button(action: {
               showPhotoLibraryPicker = true
+              imageFromCamera = false
             }) {
               Label("Galeria", systemImage: "photo")
                 .padding()
@@ -87,14 +92,14 @@ struct PlantRegisterView: View {
                     Image(uiImage: image)
                       .resizable()
                       .scaledToFill()
-                      .frame(width: 100, height: 100)
+                      .frame(width: 250, height: 250)
                       .clipped()
                       .cornerRadius(8)
                       .onTapGesture {
                         imageToDelete = image
                         showDeleteConfirmation = true
                       }
-                    
+
                     Button(action: {
                       imageToDelete = image
                       showDeleteConfirmation = true
@@ -122,20 +127,29 @@ struct PlantRegisterView: View {
           .disabled(!isValid)
         }
         .padding(.all, 16)
-        .onAppear {
-          locationManager.requestLocation()
-        }
-        .onChange(of: locationManager.location) { newLocation in
-          if let location = newLocation {
-            self.latitude = String(location.coordinate.latitude)
-            self.longitude = String(location.coordinate.longitude)
+        .onChange(of: selectedImages) { newImages in
+          if !newImages.isEmpty, latitude == "0", longitude == "0" {
+            locationManager.requestLocation()
+          }
+          
+          if newImages.isEmpty {
+            latitude = ""
+            longitude = ""
           }
         }
-        .alert(isPresented: $showAlert) {
-          Alert(title: Text("Atenção"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+        .onChange(of: locationManager.location) { newLocation in
+          if imageFromCamera, let location = newLocation {
+            latitude = String(location.coordinate.latitude)
+            longitude = String(location.coordinate.longitude)
+          }
         }
         .sheet(isPresented: $showCameraPicker) {
           CameraPicker(selectedImages: $selectedImages)
+        }
+        .onDisappear {
+          if imageFromCamera {
+            cameraPickerJustClosed = true
+          }
         }
         .sheet(isPresented: $showPhotoLibraryPicker) {
           PhotoLibraryPicker(
@@ -143,6 +157,9 @@ struct PlantRegisterView: View {
             latitude: $latitude,
             longitude: $longitude
           )
+        }
+        .alert(isPresented: $showAlert) {
+          Alert(title: Text("Atenção"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
         }
         .confirmationDialog("Deseja remover esta imagem?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
           Button("Remover", role: .destructive) {
@@ -156,7 +173,8 @@ struct PlantRegisterView: View {
           }
         }
       }
-      .navigationTitle("Cadastro de Planta")
+      .navigationTitle("Cadastro de Plantas")
+      .background(Color.backgroundApp)
     }
   }
   

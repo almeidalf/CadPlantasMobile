@@ -36,7 +36,7 @@ public struct PlantModel: Encodable {
     fruit: String? = nil,
     fruitColor: String? = nil,
     images: [IdentifiableImage]? = nil,
-    isPublic: Bool = true,
+    isPublic: Bool = true
   ) {
     self.name = name
     self.nameScientific = nameScientific

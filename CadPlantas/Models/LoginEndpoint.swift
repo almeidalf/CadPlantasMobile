@@ -22,7 +22,7 @@ public struct LoginEndpoint {
   }
   
   public func fullURL() -> URL? {
-    URL(string: Environment.baseURL + path)
+    URL(string: AppEnvironment.baseURL + path)
   }
 }
 

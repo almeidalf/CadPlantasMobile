@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum Environment {
+enum AppEnvironment {
   static var baseURL: String {
     return Bundle.main.object(forInfoDictionaryKey: "BASE_URL") as? String ?? ""
   }

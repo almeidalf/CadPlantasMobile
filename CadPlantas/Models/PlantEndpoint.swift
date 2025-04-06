@@ -40,10 +40,40 @@ public struct PlantEndpoint {
       ]
     }
     
+    if let leaf = plant.leaf {
+      body?["leaf"] = leaf
+    }
+    
+    if let leafColor = plant.leafColor {
+      body?["leafColor"] = leafColor
+    }
+    
+    if let stem = plant.stem {
+      body?["stem"] = stem
+    }
+    
+    if let inflorescence = plant.inflorescence {
+      body?["inflorescence"] = inflorescence
+    }
+    
+    if let inflorescenceColor = plant.inflorescenceColor {
+      body?["inflorescenceColor"] = inflorescenceColor
+    }
+    
+    if let fruit = plant.fruit {
+      body?["fruit"] = fruit
+    }
+    
+    if let fruitColor = plant.fruitColor {
+      body?["fruitColor"] = fruitColor
+    }
+    
     body?["images"] = plant.images
+    
+    body?["isPublic"] = plant.isPublic
   }
   
   public func fullURL() -> URL? {
-    URL(string: Environment.baseURL + path)
+    URL(string: AppEnvironment.baseURL + path)
   }
 }

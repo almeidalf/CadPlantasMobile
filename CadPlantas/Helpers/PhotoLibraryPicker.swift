@@ -10,7 +10,7 @@ import Photos
 import PhotosUI
 
 struct PhotoLibraryPicker: UIViewControllerRepresentable {
-  @Binding var selectedImages: [UIImage]
+  @Binding var selectedImages: [IdentifiableImage]
   @Binding var latitude: String
   @Binding var longitude: String
 
@@ -40,20 +40,23 @@ struct PhotoLibraryPicker: UIViewControllerRepresentable {
     func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
       picker.dismiss(animated: true)
 
+      var loadedImages: [IdentifiableImage] = []
+      let dispatchGroup = DispatchGroup()
+
       for (index, result) in results.enumerated() {
-        // Carrega imagem visual
+        dispatchGroup.enter()
+
         if result.itemProvider.canLoadObject(ofClass: UIImage.self) {
-          result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] object, error in
-            guard let self = self else { return }
+          result.itemProvider.loadObject(ofClass: UIImage.self) { object, error in
+            defer { dispatchGroup.leave() }
             if let image = object as? UIImage {
-              DispatchQueue.main.async {
-                self.parent.selectedImages.append(image)
-              }
+              loadedImages.append(IdentifiableImage(image: image))
             }
           }
+        } else {
+          dispatchGroup.leave()
         }
 
-        // Pega coordenadas apenas da primeira imagem selecionada
         if index == 0, let assetId = result.assetIdentifier {
           let assets = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: nil)
           if let asset = assets.firstObject {
@@ -63,22 +66,22 @@ struct PhotoLibraryPicker: UIViewControllerRepresentable {
             options.version = .current
 
             PHImageManager.default().requestImageDataAndOrientation(for: asset, options: options) { _, _, _, _ in
-              if let location = asset.location {
-                DispatchQueue.main.async {
+              DispatchQueue.main.async {
+                if let location = asset.location {
                   self.parent.latitude = String(location.coordinate.latitude)
                   self.parent.longitude = String(location.coordinate.longitude)
-                  print("📍 Coordenadas da primeira imagem: \(location.coordinate.latitude), \(location.coordinate.longitude)")
+                } else {
+                  self.parent.latitude = "0"
+                  self.parent.longitude = "0"
                 }
-              } else {
-                self.parent.latitude = "0"
-                self.parent.longitude = "0"
               }
             }
-          } else {
-            self.parent.latitude = "0"
-            self.parent.longitude = "0"
           }
         }
+      }
+
+      dispatchGroup.notify(queue: .main) {
+        self.parent.selectedImages.append(contentsOf: loadedImages)
       }
     }
   }

@@ -67,7 +67,6 @@ struct HomeView: View {
     }
     .padding()
     .navigationBarBackButtonHidden(true)
-    .background(Color.backgroundApp)
   }
 }
 

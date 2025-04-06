@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CameraPicker: UIViewControllerRepresentable {
-  @Binding var selectedImages: [UIImage]
+  @Binding var selectedImages: [IdentifiableImage]
 
   func makeCoordinator() -> Coordinator {
     Coordinator(self)
@@ -33,7 +33,8 @@ struct CameraPicker: UIViewControllerRepresentable {
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
       picker.dismiss(animated: true)
       if let image = info[.originalImage] as? UIImage {
-        parent.selectedImages.append(image)
+        let identifiable = IdentifiableImage(image: image)
+        parent.selectedImages.append(identifiable)
       }
     }
 

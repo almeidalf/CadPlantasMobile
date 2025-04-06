@@ -15,6 +15,7 @@ enum NetworkError: Error {
   case invalidStatusCode(Int)
 }
 
+@MainActor
 // Helper para realizar as requisições
 class APIHelper {
   

@@ -22,22 +22,24 @@ struct LoginView: View {
         VStack(spacing: 16) {
           TextField("E-mail", text: $email)
             .padding()
-            .background(Color.gray)
-            .foregroundColor(Color.colorText)
+            .background(Color.buttonBackground)
+            .foregroundColor(Color.primaryText)
             .cornerRadius(8)
             .keyboardType(.emailAddress)
             .autocapitalization(.none)
           
           SecureField("Senha", text: $password)
             .padding()
-            .background(Color.gray)
-            .foregroundColor(Color.colorText)
+            .background(Color.buttonBackground)
+            .foregroundColor(Color.primaryText)
             .cornerRadius(8)
           
           Button(action: {
             let endpoint = LoginEndpoint(email: email, password: password)
             isLoading = true
-            sendRequest(endpoint: endpoint)
+            Task {
+              await sendRequest(endpoint: endpoint)
+            }
           }) {
             if isLoading {
               ProgressView()
@@ -58,6 +60,7 @@ struct LoginView: View {
           .disabled(isLoading)
         }
         .padding(.horizontal, 16)
+        
         VStack {
           Spacer()
           ToastView(message: toastMessage, isPresented: $showToast)
@@ -78,16 +81,16 @@ struct LoginView: View {
         }
       }
     }
-    .background(Color.backgroundApp)
   }
-  
-  func sendRequest(endpoint: LoginEndpoint) {
+
+  @MainActor
+  func sendRequest(endpoint: LoginEndpoint) async {
     guard let url = endpoint.fullURL() else { return }
-    
+
     var request = URLRequest(url: url)
     request.httpMethod = endpoint.method
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    
+
     do {
       if let body = endpoint.body {
         let jsonData = try JSONSerialization.data(withJSONObject: body, options: [])
@@ -98,52 +101,35 @@ struct LoginView: View {
       isLoading = false
       return
     }
-    
-    let task = URLSession.shared.dataTask(with: request) { data, response, error in
-      DispatchQueue.main.async {
-        isLoading = false
-      }
-      
-      if let error = error {
-        showErrorToast("Erro de requisição: \(error.localizedDescription)")
+
+    do {
+      let (data, _) = try await URLSession.shared.data(for: request)
+      isLoading = false
+
+      guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+            let receivedToken = json["token"] as? String else {
+        showErrorToast("E-mail ou senha inválidos, verifique e tente novamente!")
         return
       }
-      
-      guard let data = data else {
-        showErrorToast("Nenhum dado retornado.")
-        return
-      }
-      
-      do {
-        if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-           let receivedToken = json["token"] as? String {
-          DispatchQueue.main.async {
-            token = receivedToken
-          }
-        } else {
-          showErrorToast("E-mail ou senha inválidos, verefique e tente novamente!")
-        }
-      } catch {
-        showErrorToast("Erro ao processar a resposta.")
-      }
+
+      token = receivedToken
+    } catch {
+      isLoading = false
+      showErrorToast("Erro de requisição: \(error.localizedDescription)")
     }
-    
-    task.resume()
   }
-  
+
+  @MainActor
   func showErrorToast(_ message: String) {
-    DispatchQueue.main.async {
-      toastMessage = message
-      showToast = true
-      DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-        withAnimation {
-          showToast = false
-        }
+    toastMessage = message
+    showToast = true
+    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+      withAnimation {
+        showToast = false
       }
     }
   }
 }
-
 
 #Preview {
   LoginView()

@@ -13,16 +13,46 @@ public struct PlantModel: Encodable {
   public let nameScientific: String?
   public let description: String?
   public let location: Location?
+  public let leaf: String?
+  public let leafColor: String?
+  public let stem: String?
+  public let inflorescence: String?
+  public let inflorescenceColor: String?
+  public let fruit: String?
+  public let fruitColor: String?
   public let images: [String]?
+  public let isPublic: Bool?
   
-  public init(name: String? = nil, nameScientific: String? = nil, description: String? = nil, location: Location? = nil, images: [UIImage]? = nil) {
+  public init(
+    name: String? = nil,
+    nameScientific: String? = nil,
+    description: String? = nil,
+    location: Location? = nil,
+    leaf: String? = nil,
+    leafColor: String? = nil,
+    stem: String? = nil,
+    inflorescence: String? = nil,
+    inflorescenceColor: String? = nil,
+    fruit: String? = nil,
+    fruitColor: String? = nil,
+    images: [IdentifiableImage]? = nil,
+    isPublic: Bool = true,
+  ) {
     self.name = name
     self.nameScientific = nameScientific
     self.description = description
     self.location = location
+    self.leaf = leaf
+    self.leafColor = leafColor
+    self.stem = stem
+    self.inflorescence = inflorescence
+    self.inflorescenceColor = inflorescenceColor
+    self.fruit = fruit
+    self.fruitColor = fruitColor
+    self.isPublic = isPublic
     
-    self.images = images?.compactMap { image in
-      let resized = image.resized(toMaxWidth: 1280)
+    self.images = images?.compactMap { identifiable in
+      let resized = identifiable.image.resized(toMaxWidth: 1280)
       return resized.jpegData(compressionQuality: 0.8)?.base64EncodedString()
     }
   }
@@ -45,3 +75,4 @@ extension UIImage {
     }
   }
 }
+

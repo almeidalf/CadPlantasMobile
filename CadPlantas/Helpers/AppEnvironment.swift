@@ -11,4 +11,8 @@ enum AppEnvironment {
   static var baseURL: String {
     return Bundle.main.object(forInfoDictionaryKey: "BASE_URL") as? String ?? ""
   }
+  
+  static var imageURL: String {
+    return Bundle.main.object(forInfoDictionaryKey: "IMAGE_URL") as? String ?? ""
+  }
 }

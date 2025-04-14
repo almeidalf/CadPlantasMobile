@@ -2,7 +2,7 @@ import SwiftUI
 
 enum FieldType: Identifiable {
   case leaf, stem, inflorescence, fruit
-
+  
   var id: String {
     switch self {
     case .leaf: return "leaf"
@@ -20,23 +20,26 @@ struct FieldSheetData: Identifiable {
   let showColorPicker: Bool
 }
 
+@MainActor
 struct PlantRegisterView: View {
+  @Environment(\.dismiss) private var dismiss
   @AppStorage("token") private var token: String = ""
   @State private var sheetData: FieldSheetData?
   @State private var selectedImages: [IdentifiableImage] = []
+  @State var groupId: String
   
   @State private var name = ""
   @State private var nameScientific = ""
   @State private var description = ""
   @State private var latitude = ""
   @State private var longitude = ""
-  @State private var leaves: [String] = []
+  @State private var leaf: [String] = []
   @State private var stem: [String] = []
   @State private var inflorescence: [String] = []
   @State private var fruit: [String] = []
   @State private var colors: [String] = []
   @State private var isPublic: Bool = true
-
+  
   @State private var leafSelected = ""
   @State private var leafColorSelected = ""
   @State private var stemSelected = ""
@@ -44,7 +47,7 @@ struct PlantRegisterView: View {
   @State private var inflorescenceColorSelected = ""
   @State private var fruitSelected = ""
   @State private var fruitColorSelected = ""
-
+  
   @StateObject private var locationManager = LocationManager()
   @State private var showAlert = false
   @State private var alertMessage = ""
@@ -52,15 +55,16 @@ struct PlantRegisterView: View {
   @State private var showPhotoLibraryPicker = false
   @State private var imageToDelete: IdentifiableImage?
   @State private var showDeleteConfirmation = false
-
+  @State private var isLoadingButton = false
+  
   var body: some View {
     NavigationView {
       ScrollView {
         VStack(spacing: 16) {
           FormHeaderView(name: $name, nameScientific: $nameScientific, description: $description)
-
+          
           MorphologicalSectionView(
-            leaves: leaves,
+            leaf: leaf,
             stem: stem,
             inflorescence: inflorescence,
             fruit: fruit,
@@ -74,7 +78,7 @@ struct PlantRegisterView: View {
             fruitColorSelected: $fruitColorSelected,
             sheetData: $sheetData
           )
-
+          
           LocationDisplayView(latitude: latitude, longitude: longitude)
           
           PhotoPickerSectionView(
@@ -96,8 +100,8 @@ struct PlantRegisterView: View {
             }
             .pickerStyle(.segmented)
           }
-
-          SubmitButtonView(isValid: isValid) {
+          
+          SubmitButtonView(isValid: isValid, isLoading: isLoadingButton) {
             submitForm()
           }
         }
@@ -145,12 +149,14 @@ struct PlantRegisterView: View {
       }
     }
   }
-
+  
   var isValid: Bool {
-    !name.isEmpty && !description.isEmpty && !selectedImages.isEmpty
+    !name.isEmpty && !selectedImages.isEmpty
   }
-
+  
   func submitForm() {
+    isLoadingButton = true
+    
     if isValid {
       let plant = PlantModel(
         name: name,
@@ -165,106 +171,61 @@ struct PlantRegisterView: View {
         fruit: fruitSelected,
         fruitColor: fruitColorSelected,
         images: selectedImages,
-        isPublic: isPublic
+        isPublic: isPublic,
+        group: groupId
       )
-      let endpoint = PlantEndpoint(plant: plant)
-      sendRequest(endpoint: endpoint)
+      
+      sendRequest(plant: plant)
     } else {
       alertMessage = "Preencha todos os campos e adicione pelo menos uma imagem!"
+      showAlert = true
     }
+  }
+  
+  func sendRequest(plant: PlantModel) {
+    Task {
+      do {
+        let message = try await PlantService.registerPlant(plant, token: token)
+        handleSuccess(message)
+      } catch {
+        handleError(error.localizedDescription)
+      }
+    }
+  }
+
+  private func handleSuccess(_ message: String) {
+    isLoadingButton = false
+    showAlert(message: message)
+    dismiss()
+  }
+
+  private func handleError(_ message: String) {
+    isLoadingButton = false
+    showAlert(message: message)
+  }
+  
+  private func getRequest() {
+    Task {
+      do {
+        let parts = try await PlantService.fetchPlantParts(token: token)
+        leaf = parts.leaf ?? []
+        stem = parts.stem ?? []
+        inflorescence = parts.inflorescence ?? []
+        fruit = parts.fruit ?? []
+        colors = parts.colors ?? []
+      } catch {
+        print("Erro ao buscar partes da planta:", error.localizedDescription)
+      }
+    }
+  }
+
+  
+  @MainActor
+  private func showAlert(message: String) {
+    alertMessage = message
     showAlert = true
   }
-
-  @MainActor
-  func sendRequest(endpoint: PlantEndpoint) {
-    guard let url = endpoint.fullURL() else { return }
-
-    var request = URLRequest(url: url)
-    request.httpMethod = endpoint.method
-    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-    do {
-      if let body = endpoint.body {
-        let jsonData = try JSONSerialization.data(withJSONObject: body, options: [])
-        request.httpBody = jsonData
-      }
-    } catch {
-      alertMessage = "Erro ao codificar os dados: \(error.localizedDescription)"
-      showAlert = true
-      return
-    }
-
-    let task = URLSession.shared.dataTask(with: request) { data, response, error in
-      if let error = error {
-        Task { @MainActor in
-          alertMessage = "Erro de requisição: \(error.localizedDescription)"
-          showAlert = true
-        }
-        return
-      }
-
-      guard let data = data else {
-        Task { @MainActor in
-          alertMessage = "Resposta vazia do servidor."
-          showAlert = true
-        }
-        return
-      }
-
-      do {
-        if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-           let message = json["message"] as? String {
-          Task { @MainActor in
-            alertMessage = message
-            showAlert = true
-          }
-        } else {
-          Task { @MainActor in
-            alertMessage = "Resposta inesperada do servidor."
-            showAlert = true
-          }
-        }
-      } catch {
-        Task { @MainActor in
-          alertMessage = "Erro ao processar resposta: \(error.localizedDescription)"
-          showAlert = true
-        }
-      }
-    }
-
-    task.resume()
-  }
-
-  @MainActor
-  func getRequest() {
-    guard let url = URL(string: AppEnvironment.baseURL + "/api/v1/plants/parts") else { return }
-
-    var request = URLRequest(url: url)
-    request.httpMethod = "GET"
-    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-    let task = URLSession.shared.dataTask(with: request) { data, response, error in
-      guard let data = data else { return }
-
-      do {
-        let decodedResponse = try JSONDecoder().decode(PlantPartsResponse.self, from: data)
-        DispatchQueue.main.async {
-          leaves = decodedResponse.leaves ?? []
-          stem = decodedResponse.stem ?? []
-          inflorescence = decodedResponse.inflorescence ?? []
-          fruit = decodedResponse.fruit ?? []
-          colors = decodedResponse.colors ?? []
-        }
-      } catch {
-        print("Erro ao decodificar resposta: \(error)")
-      }
-    }
-
-    task.resume()
-  }
-
+  
   func fieldTitle(for field: FieldType) -> String {
     switch field {
     case .leaf: return "Folha"
@@ -273,7 +234,7 @@ struct PlantRegisterView: View {
     case .fruit: return "Fruto"
     }
   }
-
+  
   func assignSelected(_ value: String, for field: FieldType, isColor: Bool) {
     switch field {
     case .leaf:
@@ -310,11 +271,11 @@ struct PlantRegisterView: View {
     case .fruit: return $fruitSelected
     }
   }
-
+  
   func bindingForSelectedColor(field: FieldType) -> Binding<String> {
     switch field {
     case .leaf: return $leafColorSelected
-    case .stem: return .constant("") // não tem cor
+    case .stem: return .constant("")
     case .inflorescence: return $inflorescenceColorSelected
     case .fruit: return $fruitColorSelected
     }
@@ -322,5 +283,5 @@ struct PlantRegisterView: View {
 }
 
 #Preview {
-  PlantRegisterView()
+  PlantRegisterView(groupId: "123")
 }

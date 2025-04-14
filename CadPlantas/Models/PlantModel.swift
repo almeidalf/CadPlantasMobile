@@ -22,6 +22,7 @@ public struct PlantModel: Encodable {
   public let fruitColor: String?
   public let images: [String]?
   public let isPublic: Bool?
+  public let group: String
   
   public init(
     name: String? = nil,
@@ -36,7 +37,8 @@ public struct PlantModel: Encodable {
     fruit: String? = nil,
     fruitColor: String? = nil,
     images: [IdentifiableImage]? = nil,
-    isPublic: Bool = true
+    isPublic: Bool = true,
+    group: String
   ) {
     self.name = name
     self.nameScientific = nameScientific
@@ -50,6 +52,7 @@ public struct PlantModel: Encodable {
     self.fruit = fruit
     self.fruitColor = fruitColor
     self.isPublic = isPublic
+    self.group = group
     
     self.images = images?.compactMap { identifiable in
       let resized = identifiable.image.resized(toMaxWidth: 1280)

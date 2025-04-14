@@ -6,7 +6,7 @@
 //
 
 struct PlantPartsResponse: Decodable {
-  let leaves: [String]?
+  let leaf: [String]?
   let stem: [String]?
   let inflorescence: [String]?
   let fruit: [String]?

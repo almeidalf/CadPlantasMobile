@@ -15,70 +15,66 @@ struct LoginView: View {
   @State private var isLoading = false
   @State private var showToast = false
   @State private var toastMessage = ""
-  
+
   var body: some View {
-    NavigationStack {
-      ZStack {
-        VStack(spacing: 16) {
-          TextField("E-mail", text: $email)
-            .padding()
-            .background(Color.buttonBackground)
-            .foregroundColor(Color.primaryText)
-            .cornerRadius(8)
-            .keyboardType(.emailAddress)
-            .autocapitalization(.none)
-          
-          SecureField("Senha", text: $password)
-            .padding()
-            .background(Color.buttonBackground)
-            .foregroundColor(Color.primaryText)
-            .cornerRadius(8)
-          
-          Button(action: {
-            let endpoint = LoginEndpoint(email: email, password: password)
-            isLoading = true
-            Task {
-              await sendRequest(endpoint: endpoint)
-            }
-          }) {
-            if isLoading {
-              ProgressView()
-                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.primary)
-                .cornerRadius(8)
-            } else {
-              Text("Entrar")
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(Color.blue)
-                .foregroundColor(Color.white)
-                .cornerRadius(8)
-            }
+    ZStack {
+      VStack(spacing: 16) {
+        TextField("E-mail", text: $email)
+          .padding()
+          .background(Color.buttonBackground)
+          .cornerRadius(8)
+          .keyboardType(.emailAddress)
+          .autocapitalization(.none)
+
+        SecureField("Senha", text: $password)
+          .padding()
+          .background(Color.buttonBackground)
+          .cornerRadius(8)
+
+        Button(action: {
+          let endpoint = LoginEndpoint(email: email, password: password)
+          isLoading = true
+          Task {
+            await sendRequest(endpoint: endpoint)
           }
-          .disabled(isLoading)
+        }) {
+          if isLoading {
+            ProgressView()
+              .progressViewStyle(CircularProgressViewStyle(tint: .white))
+              .frame(maxWidth: .infinity)
+              .padding()
+              .background(Color.primary)
+              .cornerRadius(8)
+          } else {
+            Text("Entrar")
+              .padding()
+              .frame(maxWidth: .infinity)
+              .background(Color.blue)
+              .foregroundColor(.white)
+              .cornerRadius(8)
+          }
         }
-        .padding(.horizontal, 16)
-        
-        VStack {
-          Spacer()
-          ToastView(message: toastMessage, isPresented: $showToast)
-            .padding(.bottom, 32)
-        }
-        .animation(.easeInOut, value: showToast)
-        .allowsHitTesting(false)
+        .disabled(isLoading)
       }
-      .navigationDestination(isPresented: $shouldNavigate) {
-        MainTabBar()
+      .padding(.horizontal, 16)
+
+      VStack {
+        Spacer()
+        ToastView(message: toastMessage, isPresented: $showToast)
+          .padding(.bottom, 32)
       }
-      .onChange(of: token) { token in
-        shouldNavigate = !token.isEmpty
-      }
-      .onAppear {
-        if !token.isEmpty {
-          shouldNavigate = true
-        }
+      .animation(.easeInOut, value: showToast)
+      .allowsHitTesting(false)
+    }
+    .fullScreenCover(isPresented: $shouldNavigate) {
+      MainTabBar()
+    }
+    .onChange(of: token) { token in
+      shouldNavigate = !token.isEmpty
+    }
+    .onAppear {
+      if !token.isEmpty {
+        shouldNavigate = true
       }
     }
   }

@@ -9,9 +9,15 @@ import SwiftUI
 
 @main
 struct CadPlantasApp: App {
+  @StateObject private var locationManager = LocationManager()
+  
   var body: some Scene {
     WindowGroup {
       SplashScreenView()
+        .environmentObject(locationManager)
+        .onAppear {
+          locationManager.requestLocation()
+        }
     }
   }
 }

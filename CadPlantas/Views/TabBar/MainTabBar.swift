@@ -9,23 +9,23 @@ import SwiftUI
 
 struct MainTabBar: View {
   var body: some View {
-    TabView {
-      NavigationStack {
+    NavigationStack {
+      TabView {
         HomeView()
-      }
-      .tabItem {
-        Label("Home", systemImage: "house.fill")
-      }
-      
-      NavigationStack {
+          .tabItem {
+            Label("Home", systemImage: "house.fill")
+          }
+
+        MyList()
+          .tabItem {
+            Label("Minha Lista", systemImage: "doc.text.magnifyingglass")
+          }
+
         ProfileView()
-      }
-      .tabItem {
-        Label("Perfil", systemImage: "person.fill")
+          .tabItem {
+            Label("Perfil", systemImage: "person.fill")
+          }
       }
     }
-    .navigationBarBackButtonHidden(true)
-    .background(Color.backgroundApp)
   }
 }
-

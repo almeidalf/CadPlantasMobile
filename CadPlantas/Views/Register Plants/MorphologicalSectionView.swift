@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct MorphologicalSectionView: View {
-  let leaves: [String]
+  let leaf: [String]
   let stem: [String]
   let inflorescence: [String]
   let fruit: [String]
@@ -30,8 +30,8 @@ struct MorphologicalSectionView: View {
         value: $leafSelected,
         color: leafColorSelected
       ) {
-        if !leaves.isEmpty {
-          sheetData = FieldSheetData(field: .leaf, options: leaves, showColorPicker: true)
+        if !leaf.isEmpty {
+          sheetData = FieldSheetData(field: .leaf, options: leaf, showColorPicker: true)
         }
       }
 
